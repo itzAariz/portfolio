@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space | Neptune Infinite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000;
+      --text: #fff;
+      --accent: #bc77ff;
+      --dim: #444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    canvas { position: fixed; top: 0; left: 0; z-index: -2; }
+
+    /* --- CURSOR --- */
+    #cursor-dot {
+      width: 6px; height: 6px; background: white; border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%);
+    }
+
+    /* --- BLACK HOLE --- */
+    .void-wrap { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1; }
+    #hole {
+      width: 280px; height: 280px; background: black; border-radius: 50%;
+      box-shadow: 0 0 80px white, 0 0 120px var(--accent);
+      transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    /* --- LAYOUT --- */
+    header { position: fixed; top: 0; width: 100%; padding: 30px 6%; display: flex; justify-content: space-between; z-index: 100; }
+    .logo { font-family: 'Syncopate'; font-weight: 700; letter-spacing: 5px; font-size: 11px; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 6%; }
+    section { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 100px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+
+    h1, h2 { font-family: 'Syncopate'; text-transform: uppercase; line-height: 0.9; margin-bottom: 30px; }
+    h1 { font-size: clamp(3rem, 12vw, 7rem); }
+    h2 { font-size: clamp(1.5rem, 5vw, 3rem); color: var(--accent); }
+
+    p { font-size: 1.5rem; font-weight: 100; color: #ccc; max-width: 800px; line-height: 1.3; }
+
+    /* --- COMPONENTS --- */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 50px; }
+    .card {
+      background: rgba(255,255,255,0.02); padding: 40px; border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px); transition: 0.5s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-10px); border-color: var(--accent); background: rgba(188, 119, 255, 0.05); }
+    .card::before { content: "WARP_DRIVE_ACTIVE"; position: absolute; top: -20px; right: -20px; font-size: 8px; opacity: 0.1; }
+
+    .reveal { opacity: 0; transform: translateY(60px); transition: 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    .glitch:hover { animation: shake 0.2s infinite; color: var(--accent); }
+    @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -1px); } }
+
+    footer { text-align: center; padding: 150px 0; border-top: 1px solid var(--accent); }
+    .contact-link { font-family: 'Syncopate'; font-size: clamp(1rem, 4vw, 3rem); text-decoration: none; color: white; transition: 0.3s; }
+    .contact-link:hover { -webkit-text-stroke: 1px white; color: transparent; }
+
+    /* --- MOBILE --- */
+    @media (max-width: 768px) { * { cursor: auto !important; } #cursor-dot { display: none; } }
+  </style>
+</head>
+<body>
+
+  <canvas id="stars"></canvas>
+  <div id="cursor-dot"></div>
+
+  <div class="void-wrap">
+    <div id="hole"></div>
+  </div>
+
+  <header>
+    <div class="logo glitch">NEPTUNE.SYS</div>
+    <nav style="display: flex; gap: 20px;">
+      <a href="#about" class="logo" style="text-decoration:none; color:white; font-size:9px">ABOUT</a>
+      <a href="#projects" class="logo" style="text-decoration:none; color:white; font-size:9px">WORK</a>
+      <a href="#contact" class="logo" style="text-decoration:none; color:white; font-size:9px">SIGNAL</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <section class="hero reveal">
+      <h1>Infinite<br>Horizon.</h1>
+      <p>Building digital singularities at <span style="color:white; font-weight:600">BitScream</span>.</p>
+    </section>
+
+    <section id="about" class="reveal">
+      <h2>01 // About</h2>
+      <p>
+        I am a product architect and community lead. My work lives at the intersection of 
+        <span style="color:var(--accent)">minimalism</span> and <span style="color:var(--accent)">gravitational design</span>. 
+        I don't just build interfaces; I build ecosystems.
+      </p>
+    </section>
+
+    <section id="experience" class="reveal">
+      <h2>02 // Experience</h2>
+      <div class="grid">
+        <div class="card">
+          <span style="font-size:10px; color:var(--accent)">NOW</span>
+          <h3 style="margin: 15px 0">CEO @ BitScream</h3>
+          <p style="font-size: 1rem;">Leading the development of next-generation software architecture and system aesthetics.</p>
+        </div>
+        <div class="card">
+          <span style="font-size:10px; color:var(--dim)">PAST</span>
+          <h3 style="margin: 15px 0">Founder @ Zeta HS</h3>
+          <p style="font-size: 1rem;">Grew a community of 560+ designers to redefine mobile home screen aesthetics.</p>
+        </div>
+        <div class="card">
+            <span style="font-size:10px; color:var(--dim)">PAST</span>
+            <h3 style="margin: 15px 0">Lead @ Zeta.Designers</h3>
+            <p style="font-size: 1rem;">Product advertising and brand identity for high-end digital clients.</p>
+          </div>
+      </div>
+    </section>
+
+    <section id="contact" class="reveal">
+      <h2>03 // Signal</h2>
+      <p style="margin-bottom: 50px;">Ready to exit orbit? Send a message to the station.</p>
+      <a href="mailto:space.a12b@gmail.com" class="contact-link glitch">SPACE.A12B@GMAIL.COM</a>
+      <div style="margin-top: 50px;">
+        <p style="font-size: 0.9rem;">Discord: <span style="color:white">@neptune.ixc</span></p>
+      </div>
+    </section>
+
+    <footer style="font-size: 10px; letter-spacing: 5px; color: var(--dim);">
+      © 2026 NEPTUNE / BITSCREAM / ALL SYSTEMS NOMINAL
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    const dot = document.getElementById('cursor-dot');
+    const hole = document.getElementById('hole');
+    
+    let stars = [];
+    let isWarping = false;
+    let mx = 0, my = 0;
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 3D Star Generation
+    for(let i=0; i<400; i++) {
+      stars.push({
+        x: (Math.random() - 0.5) * canvas.width * 2,
+        y: (Math.random() - 0.5) * canvas.height * 2,
+        z: Math.random() * canvas.width,
+        px: 0, py: 0
+      });
+    }
+
+    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    window.addEventListener('mousedown', () => { isWarping = true; hole.style.transform = "scale(0.5)"; });
+    window.addEventListener('mouseup', () => { isWarping = false; hole.style.transform = "scale(1)"; });
+
+    function animate() {
+      ctx.fillStyle = isWarping ? "rgba(0,0,0,0.2)" : "black";
+      ctx.fillRect(0,0,canvas.width, canvas.height);
+
+      let speed = isWarping ? 25 : 1.5;
+      stars.forEach(s => {
+        s.z -= speed;
+        if(s.z <= 0) s.z = canvas.width;
+        let k = 128 / s.z;
+        let x = s.x * k + canvas.width / 2;
+        let y = s.y * k + canvas.height / 2;
+
+        if (s.px !== 0) {
+          ctx.beginPath();
+          ctx.strokeStyle = isWarping ? "rgba(188,119,255,0.8)" : "white";
+          ctx.lineWidth = isWarping ? 2 : 1;
+          ctx.moveTo(x, y); ctx.lineTo(s.px, s.py);
+          ctx.stroke();
+        }
+        s.px = x; s.py = y;
+      });
+
+      dot.style.left = mx + 'px';
+      dot.style.top = my + 'px';
+      
+      const hx = (window.innerWidth/2 - mx) / 40;
+      const hy = (window.innerHeight/2 - my) / 40;
+      hole.style.transform = `translate(${hx}px, ${hy}px)`;
+
+      requestAnimationFrame(animate);
+    }
+
+    const obs = new IntersectionObserver((es) => {
+      es.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
+    }, {threshold: 0.1});
+    document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+
+    animate();
+  </script>
+</body>
+</html>
