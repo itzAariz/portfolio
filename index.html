@@ -1,206 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Space | Neptune Infinite</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;600&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #000;
-      --text: #fff;
-      --accent: #bc77ff;
-      --dim: #444;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neptune | Protocol 3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@100;400;700&family=JetBrains+Mono:wght@300&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #bc77ff; --bg: #030303; --term-bg: rgba(10, 10, 10, 0.95); }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; -webkit-tap-highlight-color: transparent; }
+        body, html { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; width: 100%; min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
+        
+        body::after { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("https://grainy-gradients.vercel.app/noise.svg"); opacity: 0.05; pointer-events: none; z-index: 10000; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
-    canvas { position: fixed; top: 0; left: 0; z-index: -2; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
 
-    /* --- CURSOR --- */
-    #cursor-dot {
-      width: 6px; height: 6px; background: white; border-radius: 50%;
-      position: fixed; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%);
-    }
+        /* COMMAND PALETTE */
+        #cmd-palette { 
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.9); 
+            width: 500px; background: var(--term-bg); border: 1px solid var(--accent); 
+            z-index: 20000; padding: 20px; display: none; opacity: 0; transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 50px rgba(188, 119, 255, 0.2); backdrop-filter: blur(20px);
+        }
+        #cmd-palette.active { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        #cmd-input { width: 100%; background: transparent; border: none; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 18px; outline: none; margin-top: 10px; }
+        .cmd-hint { font-family: 'Syncopate'; font-size: 8px; color: #555; letter-spacing: 2px; }
 
-    /* --- BLACK HOLE --- */
-    .void-wrap { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1; }
-    #hole {
-      width: 280px; height: 280px; background: black; border-radius: 50%;
-      box-shadow: 0 0 80px white, 0 0 120px var(--accent);
-      transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-    }
+        /* SKILL MESH */
+        .skill-mesh { position: relative; height: 400px; width: 100%; margin-top: 50px; overflow: hidden; }
+        .skill-node { position: absolute; font-family: 'Syncopate'; font-size: 10px; color: #444; border: 1px solid rgba(255,255,255,0.05); padding: 10px 20px; transition: 0.5s; pointer-events: auto; }
+        .skill-node:hover { color: var(--accent); border-color: var(--accent); background: rgba(188, 119, 255, 0.05); text-shadow: 0 0 10px var(--accent); }
 
-    /* --- LAYOUT --- */
-    header { position: fixed; top: 0; width: 100%; padding: 30px 6%; display: flex; justify-content: space-between; z-index: 100; }
-    .logo { font-family: 'Syncopate'; font-weight: 700; letter-spacing: 5px; font-size: 11px; }
+        /* PRELOADER */
+        #preloader { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: 1s cubic-bezier(0.85, 0, 0.15, 1); }
+        .counter { font-family: 'Syncopate'; font-size: 5rem; color: #fff; letter-spacing: -5px; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 6%; }
-    section { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 100px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        /* HUD & UI */
+        #starfield { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -100; pointer-events: none; }
+        #terminal { position: fixed; bottom: 30px; left: 40px; width: 250px; height: 80px; font-family: 'JetBrains Mono'; font-size: 8px; color: #444; overflow: hidden; z-index: 1000; pointer-events: none; }
+        .log-entry { color: var(--accent); opacity: 0.6; margin-bottom: 2px; }
+        #hud { position: fixed; bottom: 30px; right: 40px; font-family: 'Syncopate'; font-size: 8px; color: #444; letter-spacing: 2px; z-index: 1000; text-align: right; }
+        
+        .liquid-glass { font-family: 'Syncopate'; font-size: clamp(3rem, 12vw, 8.5rem); line-height: 0.8; text-transform: uppercase; background: linear-gradient(180deg, #fff 10%, rgba(255,255,255,0.1) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(255,255,255,0.2)); animation: float 8s ease-in-out infinite; }
+        
+        #dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: width 0.3s, height 0.3s; mix-blend-mode: difference; }
 
-    h1, h2 { font-family: 'Syncopate'; text-transform: uppercase; line-height: 0.9; margin-bottom: 30px; }
-    h1 { font-size: clamp(3rem, 12vw, 7rem); }
-    h2 { font-size: clamp(1.5rem, 5vw, 3rem); color: var(--accent); }
+        .container { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0 6%; }
+        section { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 0; }
 
-    p { font-size: 1.5rem; font-weight: 100; color: #ccc; max-width: 800px; line-height: 1.3; }
+        /* GLITCH CARDS */
+        .card { background: rgba(255,255,255,0.01); padding: 60px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); margin-top: 50px; position: relative; overflow: hidden; }
+        .glitch-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px); pointer-events: none; opacity: 0; transition: 0.3s; }
+        .card:hover .glitch-overlay { opacity: 1; animation: glitch-anim 0.2s infinite; }
+        @keyframes glitch-anim { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
 
-    /* --- COMPONENTS --- */
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 50px; }
-    .card {
-      background: rgba(255,255,255,0.02); padding: 40px; border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px); transition: 0.5s; position: relative; overflow: hidden;
-    }
-    .card:hover { transform: translateY(-10px); border-color: var(--accent); background: rgba(188, 119, 255, 0.05); }
-    .card::before { content: "WARP_DRIVE_ACTIVE"; position: absolute; top: -20px; right: -20px; font-size: 8px; opacity: 0.1; }
+        .btn { display: inline-block; padding: 25px 60px; border: 1px solid rgba(255,255,255,0.2); color: #fff; text-decoration: none; font-family: 'Syncopate'; font-size: 10px; letter-spacing: 5px; margin-top: 40px; transition: 0.4s; }
+        .btn:hover { background: #fff; color: #000; }
 
-    .reveal { opacity: 0; transform: translateY(60px); transition: 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
-    .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal { opacity: 0; transform: translateY(40px); transition: 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
 
-    .glitch:hover { animation: shake 0.2s infinite; color: var(--accent); }
-    @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -1px); } }
-
-    footer { text-align: center; padding: 150px 0; border-top: 1px solid var(--accent); }
-    .contact-link { font-family: 'Syncopate'; font-size: clamp(1rem, 4vw, 3rem); text-decoration: none; color: white; transition: 0.3s; }
-    .contact-link:hover { -webkit-text-stroke: 1px white; color: transparent; }
-
-    /* --- MOBILE --- */
-    @media (max-width: 768px) { * { cursor: auto !important; } #cursor-dot { display: none; } }
-  </style>
+        @media (max-width: 768px) { #dot, #hud, #terminal, #cmd-palette { display: none !important; } .liquid-glass { font-size: 3.2rem; } }
+    </style>
 </head>
 <body>
 
-  <canvas id="stars"></canvas>
-  <div id="cursor-dot"></div>
+    <div id="cmd-palette">
+        <div class="cmd-hint">SYSTEM_COMMAND_INTERFACE // TYPE 'HELP'</div>
+        <input type="text" id="cmd-input" placeholder=">_" autocomplete="off">
+    </div>
 
-  <div class="void-wrap">
-    <div id="hole"></div>
-  </div>
+    <div id="preloader"><div class="counter" id="loader-count">000</div></div>
+    <canvas id="starfield"></canvas>
+    <div id="terminal"></div>
+    <div id="hud">STABLE_V3.0 <div style="display:inline-block; width:6px; height:6px; background:var(--accent); border-radius:50%; animation: pulse 2s infinite;"></div><br><span id="coords">X: 000 Y: 000</span></div>
+    <div id="dot"></div>
 
-  <header>
-    <div class="logo glitch">NEPTUNE.SYS</div>
-    <nav style="display: flex; gap: 20px;">
-      <a href="#about" class="logo" style="text-decoration:none; color:white; font-size:9px">ABOUT</a>
-      <a href="#projects" class="logo" style="text-decoration:none; color:white; font-size:9px">WORK</a>
-      <a href="#contact" class="logo" style="text-decoration:none; color:white; font-size:9px">SIGNAL</a>
-    </nav>
-  </header>
+    <header style="position:fixed; top:40px; width:100%; padding:0 6%; display:flex; justify-content:space-between; z-index:1000; mix-blend-mode:difference;">
+        <a href="#" class="logo" style="font-family:'Syncopate'; font-weight:700; color:#fff; text-decoration:none; letter-spacing:5px; font-size:14px;">NEPTUNE</a>
+        <div style="font-family:'Syncopate'; font-size:9px; opacity:0.4;">PRESS 'K' FOR CMD</div>
+    </header>
 
-  <div class="container">
-    <section class="hero reveal">
-      <h1>Infinite<br>Horizon.</h1>
-      <p>Building digital singularities at <span style="color:white; font-weight:600">BitScream</span>.</p>
-    </section>
+    <div class="container">
+        <section id="home">
+            <h1 class="liquid-glass">Cosmic<br>Talent.</h1>
+            <p style="margin-top:30px; font-family:'Syncopate'; font-size:10px; letter-spacing:15px; color:#333;">NEPTUNE.EXE</p>
+        </section>
 
-    <section id="about" class="reveal">
-      <h2>01 // About</h2>
-      <p>
-        I am a product architect and community lead. My work lives at the intersection of 
-        <span style="color:var(--accent)">minimalism</span> and <span style="color:var(--accent)">gravitational design</span>. 
-        I don't just build interfaces; I build ecosystems.
-      </p>
-    </section>
+        <section id="skills">
+            <h2 class="reveal" style="font-family:'Syncopate'; font-size:12px; color:var(--accent); letter-spacing:6px;">01 // NEURAL_MESH</h2>
+            <div class="skill-mesh" id="mesh-container">
+                </div>
+        </section>
 
-    <section id="experience" class="reveal">
-      <h2>02 // Experience</h2>
-      <div class="grid">
-        <div class="card">
-          <span style="font-size:10px; color:var(--accent)">NOW</span>
-          <h3 style="margin: 15px 0">CEO @ BitScream</h3>
-          <p style="font-size: 1rem;">Leading the development of next-generation software architecture and system aesthetics.</p>
-        </div>
-        <div class="card">
-          <span style="font-size:10px; color:var(--dim)">PAST</span>
-          <h3 style="margin: 15px 0">Founder @ Zeta HS</h3>
-          <p style="font-size: 1rem;">Grew a community of 560+ designers to redefine mobile home screen aesthetics.</p>
-        </div>
-        <div class="card">
-            <span style="font-size:10px; color:var(--dim)">PAST</span>
-            <h3 style="margin: 15px 0">Lead @ Zeta.Designers</h3>
-            <p style="font-size: 1rem;">Product advertising and brand identity for high-end digital clients.</p>
-          </div>
-      </div>
-    </section>
+        <section id="experience">
+            <h2 class="reveal" style="font-family:'Syncopate'; font-size:12px; color:var(--accent); letter-spacing:6px; margin-bottom:60px;">02 // EXPERIENCE</h2>
+            <div class="card reveal magnetic-el" data-log="DECRYPTING_EXP: JUSDOTS">
+                <div style="font-family:'Syncopate'; font-size:10px; color:var(--accent); margin-bottom:10px;">PRESENT</div>
+                <h3 style="font-family:'Syncopate'; font-size:20px;">TESTER @ JusDots</h3>
+                <p style="color:#777; margin-top:15px; line-height:1.6;">Directing physics-based web interfaces and orbital systems.</p>
+            </div>
+        </section>
 
-    <section id="contact" class="reveal">
-      <h2>03 // Signal</h2>
-      <p style="margin-bottom: 50px;">Ready to exit orbit? Send a message to the station.</p>
-      <a href="mailto:space.a12b@gmail.com" class="contact-link glitch">SPACE.A12B@GMAIL.COM</a>
-      <div style="margin-top: 50px;">
-        <p style="font-size: 0.9rem;">Discord: <span style="color:white">@neptune.ixc</span></p>
-      </div>
-    </section>
+        <section id="projects">
+            <h2 class="reveal" style="font-family:'Syncopate'; font-size:12px; color:var(--accent); letter-spacing:6px; margin-bottom:20px;">03 // PROJECTS</h2>
+            <div class="card reveal magnetic-el" data-log="LOADING_VOID_ENGINE">
+                <div class="glitch-overlay"></div>
+                <h3 style="font-family:'Syncopate'; font-size:24px; margin-bottom:20px;">JUSDOTS</h3>
+                <p style="color:#777; line-height:1.8; font-size:1.1rem; max-width:700px;">Gravity-driven design simulation. Engineering the physics of the web.</p>
+                <a href="https://shubh72010.github.io/JusDots/" target="_blank" class="btn">ACCESS_VOID</a>
+            </div>
+        </section>
 
-    <footer style="font-size: 10px; letter-spacing: 5px; color: var(--dim);">
-      © 2026 NEPTUNE / BITSCREAM / ALL SYSTEMS NOMINAL
-    </footer>
-  </div>
+        <section id="contact" style="text-align:center;">
+            <h2 class="reveal" style="font-family:'Syncopate'; font-size:12px; color:var(--accent); margin-bottom:40px; letter-spacing:6px;">04 // SIGNAL</h2>
+            <a href="mailto:space.a12b@gmail.com" class="btn reveal magnetic-el" style="padding:25px 80px;">SEND_TRANSMISSION</a>
+            <div style="display:flex; justify-content:center; gap:40px; margin-top:60px;">
+                <a href="https://instagram.com/@sp4ce.ixc" target="_blank" style="color:#666; font-family:'Syncopate'; font-size:10px; text-decoration:none;" class="magnetic-el">INSTAGRAM</a>
+                <a href="https://github.com/itzAariz/portfolio" style="color:#666; font-family:'Syncopate'; font-size:10px; text-decoration:none;" class="magnetic-el">Github Repo</a>
+            </div>
+        </section>
+    </div>
 
-  <script>
-    const canvas = document.getElementById('stars');
-    const ctx = canvas.getContext('2d');
-    const dot = document.getElementById('cursor-dot');
-    const hole = document.getElementById('hole');
-    
-    let stars = [];
-    let isWarping = false;
-    let mx = 0, my = 0;
-
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.addEventListener('resize', resize);
-    resize();
-
-    // 3D Star Generation
-    for(let i=0; i<400; i++) {
-      stars.push({
-        x: (Math.random() - 0.5) * canvas.width * 2,
-        y: (Math.random() - 0.5) * canvas.height * 2,
-        z: Math.random() * canvas.width,
-        px: 0, py: 0
-      });
-    }
-
-    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-    window.addEventListener('mousedown', () => { isWarping = true; hole.style.transform = "scale(0.5)"; });
-    window.addEventListener('mouseup', () => { isWarping = false; hole.style.transform = "scale(1)"; });
-
-    function animate() {
-      ctx.fillStyle = isWarping ? "rgba(0,0,0,0.2)" : "black";
-      ctx.fillRect(0,0,canvas.width, canvas.height);
-
-      let speed = isWarping ? 25 : 1.5;
-      stars.forEach(s => {
-        s.z -= speed;
-        if(s.z <= 0) s.z = canvas.width;
-        let k = 128 / s.z;
-        let x = s.x * k + canvas.width / 2;
-        let y = s.y * k + canvas.height / 2;
-
-        if (s.px !== 0) {
-          ctx.beginPath();
-          ctx.strokeStyle = isWarping ? "rgba(188,119,255,0.8)" : "white";
-          ctx.lineWidth = isWarping ? 2 : 1;
-          ctx.moveTo(x, y); ctx.lineTo(s.px, s.py);
-          ctx.stroke();
+    <script>
+        // 1. AUDIO ENGINE (Procedural Synth)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type, duration, vol) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
-        s.px = x; s.py = y;
-      });
 
-      dot.style.left = mx + 'px';
-      dot.style.top = my + 'px';
-      
-      const hx = (window.innerWidth/2 - mx) / 40;
-      const hy = (window.innerHeight/2 - my) / 40;
-      hole.style.transform = `translate(${hx}px, ${hy}px)`;
+        // 2. SKILL MESH GENERATOR
+        const skills = ['JavaScript', 'React', 'Three.js', 'Python', 'UI/UX', 'Node.js', 'Figma', 'WebGL', 'AI_Integration', 'GLSL'];
+        const mesh = document.getElementById('mesh-container');
+        skills.forEach(s => {
+            const node = document.createElement('div');
+            node.className = 'skill-node magnetic-el';
+            node.innerText = s;
+            node.style.top = Math.random() * 80 + '%';
+            node.style.left = Math.random() * 80 + '%';
+            mesh.appendChild(node);
+        });
 
-      requestAnimationFrame(animate);
-    }
+        // 3. COMMAND PALETTE LOGIC
+        const palette = document.getElementById('cmd-palette');
+        const cmdInput = document.getElementById('cmd-input');
+        window.addEventListener('keydown', e => {
+            if (e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                palette.classList.toggle('active');
+                if(palette.classList.contains('active')) {
+                    cmdInput.focus();
+                    log("CMD_INTERFACE_OPEN");
+                    playSound(440, 'sine', 0.1, 0.1);
+                }
+            }
+            if (e.key === 'Escape') palette.classList.remove('active');
+        });
 
-    const obs = new IntersectionObserver((es) => {
-      es.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); });
-    }, {threshold: 0.1});
-    document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+        cmdInput.addEventListener('keydown', e => {
+            if(e.key === 'Enter') {
+                const val = cmdInput.value.toLowerCase();
+                if(val === 'help') log("CMDS: PROJECTS, EXP, CONTACT, CLEAR");
+                else if(val === 'projects') document.getElementById('projects').scrollIntoView();
+                else if(val === 'clear') document.getElementById('terminal').innerHTML = '';
+                else log("UNKNOWN_PROTOCOL");
+                cmdInput.value = '';
+                palette.classList.remove('active');
+                playSound(880, 'square', 0.05, 0.05);
+            }
+        });
 
-    animate();
-  </script>
+        // 4. TERMINAL & LOGGING
+        function log(msg) {
+            const term = document.getElementById('terminal');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `> ${msg}`;
+            term.prepend(entry);
+            if(term.children.length > 5) term.lastChild.remove();
+        }
+
+        // 5. STARFIELD & CORE ENGINE
+        const canvas = document.getElementById('starfield'), ctx = canvas.getContext('2d');
+        const dot = document.getElementById('dot');
+        let stars = [];
+        let mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+
+        function init() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            stars = Array.from({length: 400}, () => ({
+                x: (Math.random() - 0.5) * canvas.width * 2,
+                y: (Math.random() - 0.5) * canvas.height * 2,
+                z: Math.random() * canvas.width
+            }));
+        }
+
+        window.addEventListener('mousemove', e => { 
+            mouse.tx = e.clientX; mouse.ty = e.clientY; 
+            document.getElementById('coords').innerText = `X: ${Math.round(e.clientX)} Y: ${Math.round(e.clientY)}`;
+        });
+
+        // INITIAL INTERACTION (Unlock Audio)
+        window.addEventListener('mousedown', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); playSound(150, 'sine', 0.5, 0.1); });
+
+        function animate() {
+            mouse.x += (mouse.tx - mouse.x) * 0.1;
+            mouse.y += (mouse.ty - mouse.y) * 0.1;
+            ctx.fillStyle = '#030303'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(s => {
+                s.z -= 2; if(s.z <= 0) s.z = canvas.width;
+                const k = 128 / s.z;
+                const x = s.x * k + (canvas.width/2) + (canvas.width/2 - mouse.x) * 0.05;
+                const y = s.y * k + (canvas.height/2) + (canvas.height/2 - mouse.y) * 0.05;
+                ctx.fillStyle = `rgba(255,255,255,${1 - s.z/canvas.width})`;
+                ctx.fillRect(x, y, 1.5, 1.5);
+            });
+
+            dot.style.left = mouse.x + 'px'; dot.style.top = mouse.y + 'px';
+            requestAnimationFrame(animate);
+        }
+
+        // 6. PRELOADER
+        let count = 0;
+        const loadInt = setInterval(() => {
+            count += Math.floor(Math.random() * 5) + 1;
+            if(count >= 100) {
+                count = 100; clearInterval(loadInt);
+                setTimeout(() => { document.getElementById('preloader').style.transform = 'translateY(-100%)'; log("SYSTEM_INIT_COMPLETE"); }, 500);
+            }
+            document.getElementById('loader-count').innerText = count.toString().padStart(3, '0');
+        }, 30);
+
+        // MAGNETIC SENSORS
+        document.querySelectorAll('.magnetic-el').forEach(el => {
+            el.addEventListener('mousemove', e => {
+                const r = el.getBoundingClientRect();
+                el.style.transform = `translate(${(e.clientX - r.left - r.width/2)*0.2}px, ${(e.clientY - r.top - r.height/2)*0.2}px)`;
+            });
+            el.addEventListener('mouseenter', () => { 
+                if(el.dataset.log) log(el.dataset.log); 
+                dot.style.width = '40px'; dot.style.height = '40px'; dot.style.background = 'transparent'; dot.style.border = '1px solid #fff';
+                playSound(1200, 'sine', 0.02, 0.02);
+            });
+            el.addEventListener('mouseleave', () => { 
+                el.style.transform = 'translate(0,0)';
+                dot.style.width = '6px'; dot.style.height = '6px'; dot.style.background = '#fff'; dot.style.border = 'none';
+            });
+        });
+
+        init(); animate();
+        const obs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('active'); }), {threshold: 0.1});
+        document.querySelectorAll('.reveal').forEach(r => obs.observe(r));
+    </script>
 </body>
 </html>
